@@ -20,8 +20,6 @@ void main() async {
     defaultScreen = HomeScreen(id: id);
   }
 
-
-
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => OnBoardNotifier()),
   ], child: const MyApp()));

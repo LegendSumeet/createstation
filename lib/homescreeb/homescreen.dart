@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 class HomeScreen extends StatefulWidget {
   final String id;
   const HomeScreen({super.key, required this.id});
@@ -14,15 +15,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
   void initState() {
     createStation();
     super.initState();
   }
 
+  bool checkdata = false;
 
- String responseString = '';
+  String responseString = '';
   String stationName = '';
   String stationAddress = '';
   int stationPrice = 0;
@@ -36,7 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String plugs = '';
 
   Future<void> createStation() async {
-    final String url = 'http://16.171.199.244:5001/createstation/station/${widget.id}';
+    final String url =
+        'http://16.171.199.244:5001/createstation/station/${widget.id}';
 
     final response = await http.get(Uri.parse(url));
 
@@ -57,45 +59,80 @@ class _HomeScreenState extends State<HomeScreen> {
         plugs = responseData['plugs'];
       });
     } else {
-      throw Exception('Failed to load data');
+      setState(() {
+        checkdata = true;
+      });
+      Get.snackbar('Error', 'Failed to load station details');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-
-        title: const Text('Station Details'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.remove('UID');
-          prefs.setBool('isStation',false);
-          Get.offAll(()=>MainScreen() );
-
-        },
-        child: const Icon(Icons.login_outlined),
-      ),
-      body: Column(
-        children: <Widget>[
-          const SizedBox(height: 20),
-          const SizedBox(height: 20),
-          Text('Station Name: $stationName'),
-          Text('Station Address: $stationAddress'),
-          Text('Station Price: $stationPrice'),
-          Text('Station Latitude: $stationLatitude'),
-          Text('Station Longitude: $stationLongitude'),
-          Text('Owner Name: $ownerName'),
-          Text('Owner Phone: $ownerPhone'),
-          Text('Owner Email: $ownerEmail'),
-          Text('Owner Password: $ownerPassword'),
-          Text('Is Approved: $isApproved'),
-          Text('Plugs: $plugs'),
-        ],
-      )
-    );
+        appBar: AppBar(
+          title: const Text('Station Details'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.remove('UID');
+            prefs.setBool('isStation', false);
+            Get.offAll(() => MainScreen());
+          },
+          child: const Icon(Icons.login_outlined),
+        ),
+        body: (checkdata == false)
+            ? Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: ListView(
+                children: <Widget>[
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.location_city),
+                      title: const Text('Station Name'),
+                      subtitle: Text('$stationName'),
+                    ),
+                  ),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.location_on),
+                      title: const Text('Station Address'),
+                      subtitle: Text('$stationAddress'),
+                    ),
+                  ),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.money),
+                      title: const Text('Price'),
+                      subtitle: Text('$stationPrice'),
+                    ),
+                  ),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.power),
+                      title: const Text('Plugs'),
+                      subtitle: Text('$plugs'),
+                    ),
+                  ),
+                  const Card(
+                    child: ListTile(
+                      leading: Icon(Icons.info),
+                      title: Text('Review Status'),
+                      subtitle: Text(
+                          "Your Station is in Review, Please wait for approval."),
+                      trailing: CircularProgressIndicator(),
+                    ),
+                  ),
+                ],
+              ),
+            )
+            : const Center(
+                child: Card(
+                  child: ListTile(
+                    title: Text(
+                        'Your Station application is rejected, Please try again.'),
+                  ),
+                ),
+              ));
   }
 }
