@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:createstation/authandbuttons/auth.dart';
+import 'package:createstation/bookingscreen.dart';
+import 'package:createstation/cards.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -22,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool checkdata = false;
-
   String responseString = '';
   String stationName = '';
   String stationAddress = '';
@@ -38,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> createStation() async {
     final String url =
-        'http://16.171.199.244:5001/createstation/station/${widget.id}';
+        'https://greenchargehub.vercel.app/createstation/station/${widget.id}';
 
     final response = await http.get(Uri.parse(url));
 
@@ -114,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: Text('$plugs'),
                     ),
                   ),
-                  const Card(
+                  (isApproved==false)?const Card(
                     child: ListTile(
                       leading: Icon(Icons.info),
                       title: Text('Review Status'),
@@ -122,7 +123,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           "Your Station is in Review, Please wait for approval."),
                       trailing: CircularProgressIndicator(),
                     ),
+                  ):const Card(
+                    child: ListTile(
+                      leading: Icon(Icons.info),
+                      title: Text('Review Status'),
+                      subtitle: Text(
+                          "Your Station is Approved, You can now take bookings."),
+                    ),
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.scatter_plot),
+                    title: const Text('Get Bookings'),
+                    subtitle: ElevatedButton(
+                      onPressed: () {
+                        Get.to(() => BookingView(phonenumber: widget.id));
+                      },
+                      child: const Text('Bookings'),
+                    ),
+                  ),
+
                 ],
               ),
             )

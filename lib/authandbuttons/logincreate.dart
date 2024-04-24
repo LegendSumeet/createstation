@@ -5,9 +5,10 @@ import 'package:createstation/homescreeb/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import "package:http/http.dart" as http;
+import "package:http/http.dart" as https;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as devtools;
+import '../cibnst.dart';
 import '../controller/controller.dart';
 
 class StationLoginScreen extends StatefulWidget {
@@ -59,7 +60,7 @@ class _StationLoginScreenState extends State<StationLoginScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                var response = await http.get(Uri.http("16.171.199.244:5001",
+                var response = await https.get(Uri.https(Server.url,
                     "/createstation/station/login/${emailController.text.toString()}/${passwordController.text.toString()}"));
                 devtools.log(emailController.text);
                 devtools.log(passwordController.text);
