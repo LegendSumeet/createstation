@@ -19,6 +19,7 @@ class OnBoardNotifier extends ChangeNotifier {
 
         Get.to(() => StationLoginScreen());
       } else if (!response) {
+        navigator!.pop();
         Get.snackbar("error", "error");
       }
     }).catchError((error) {

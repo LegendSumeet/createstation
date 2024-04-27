@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:createstation/controller/authmodel.dart';
 import 'package:createstation/homescreeb/homescreen.dart';
+import 'package:createstation/loading.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +62,12 @@ class _StationLoginScreenState extends State<StationLoginScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Loading();
+                  },
+                );
                 var response = await https.get(Uri.https(Server.url,
                     "/createstation/station/login/${emailController.text.toString()}/${passwordController.text.toString()}"));
                 devtools.log(emailController.text);
@@ -68,19 +76,23 @@ class _StationLoginScreenState extends State<StationLoginScreen> {
                 devtools.log(response.statusCode.toString());
                 if (response.statusCode == 200) {
                   final decoded = jsonDecode(response.body);
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
                   prefs.setString('UID', decoded['_id']);
                   prefs.setBool('isStation', true);
                   String uid = prefs.getString('UID').toString();
-                 Get.offAll(()=>HomeScreen(id: uid));
+                  Get.offAll(() => HomeScreen(id: uid));
                 } else {
                   // Handle non-200 status code
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Login email or password is incorrect. Please try again.'),
+                    const SnackBar(
+                      content: Text(
+                          'Login email or password is incorrect. Please try again.'),
                     ),
                   );
-                  print("Failed to fetch data. Status code: ${response.statusCode}");
+                  print(
+                      "Failed to fetch data. Status code: ${response.statusCode}");
                 }
               },
               child: const Text('Login'),
@@ -106,6 +118,7 @@ class CreateStationScreen extends StatefulWidget {
 }
 
 class _CreateStationScreenState extends State<CreateStationScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // Define controllers for each TextFormField
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -138,106 +151,164 @@ class _CreateStationScreenState extends State<CreateStationScreen> {
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextFormField(
-                controller:
-                    nameController, // Assign controller to TextFormField
-                decoration: const InputDecoration(
-                  labelText: 'Station Name',
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Station Name',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter station name';
+                    }
+                    return null; // Return null if the input is valid
+                  },
                 ),
-              ),
-              TextFormField(
-                controller:
-                    fullnameController, // Assign controller to TextFormField
-                decoration: const InputDecoration(
-                  labelText: 'Owner Name',
+                TextFormField(
+                  controller: fullnameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Owner Name',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter owner name';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller:
-                    emailController, // Assign controller to TextFormField
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter email';
+                    }
+                    if (EmailValidator.validate(value) == false) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller:
-                    phoneNumberController, // Assign controller to TextFormField
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller:
-                    passwordController, // Assign controller to TextFormField
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller:
-                    addressController, // Assign controller to TextFormField
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller:
-                    priceController, // Assign controller to TextFormField
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Price per kWh',
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller:
-                    plugsController, // Assign controller to TextFormField
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Number of Plugs',
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final mentorNotifier =
-                      Provider.of<OnBoardNotifier>(context, listen: false);
-                  // You can access the text entered in the TextFormFields using the controllers
-                  final String name = nameController.text;
-                  final String email = emailController.text;
-                  final String phoneNumber = phoneNumberController.text;
-                  final String password = passwordController.text;
-                  final String address = addressController.text;
-                  final String price = priceController.text;
-                  final String plugs = plugsController.text;
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: phoneNumberController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    prefix: Text('+91'),
+                    labelText: 'Phone Number',
+                  ),
+                  validator: (value) {
+                    if (value != null && value.length != 10) {
+                      return 'Please enter a 10-digit phone number';
+                    }
 
-                  CreateStation station = CreateStation(
-                      name: name,
-                      address: address,
-                      price: price.toString(),
-                      latitude: widget.latitude,
-                      longitude: widget.longitude,
-                      plugs: plugs,
-                      ownerName: fullnameController.text,
-                      ownerPhone: phoneNumber,
-                      ownerEmail: email,
-                      ownerPassword: password);
-
-                  await mentorNotifier.createStation(station);
-                },
-                child: const Text('Create Station'),
-              ),
-            ],
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter password';
+                    }
+                    // You can add more password strength validation here if needed
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  maxLines: 5,
+                  controller: addressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Address',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter address';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Price per kWh',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter price';
+                    }
+                    // You can add more sophisticated price validation here if needed
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: plugsController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Number of Plugs',
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter number of plugs';
+                    }
+                    // You can add more validation for the number of plugs here if needed
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) {
+                      return;
+                    }
+                    final mentorNotifier =
+                        Provider.of<OnBoardNotifier>(context, listen: false);
+                    final String name = nameController.text;
+                    final String email = emailController.text;
+                    final String phoneNumber = phoneNumberController.text;
+                    final String password = passwordController.text;
+                    final String address = addressController.text;
+                    final String price = priceController.text;
+                    final String plugs = plugsController.text;
+                    CreateStation station = CreateStation(
+                        name: name,
+                        address: address,
+                        price: price.toString(),
+                        latitude: widget.latitude,
+                        longitude: widget.longitude,
+                        plugs: plugs,
+                        ownerName: fullnameController.text,
+                        ownerPhone: phoneNumber,
+                        ownerEmail: email,
+                        ownerPassword: password);
+                   showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Loading();
+                      },
+                    );
+                    await mentorNotifier.createStation(station);
+                  },
+                  child: const Text('Create Station'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

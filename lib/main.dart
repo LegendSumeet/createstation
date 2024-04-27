@@ -10,13 +10,12 @@ import 'controller/controller.dart';
 Widget defaultScreen = MainScreen();
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String id = prefs.getString('UID') ?? '';
 
-  bool? isStation = prefs.getBool('isStation') ;
-  if(isStation == true){
+  bool? isStation = prefs.getBool('isStation');
+  if (isStation == true) {
     defaultScreen = HomeScreen(id: id);
   }
 
@@ -32,6 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:defaultScreen,
+      home: defaultScreen,
     );
   }
 }

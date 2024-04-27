@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ListTile(
                       leading: const Icon(Icons.location_on),
                       title: const Text('Station Address'),
-                      subtitle: Text('$stationAddress'),
+                      subtitle: Text('$stationAddress',maxLines: 5,),
                     ),
                   ),
                   Card(
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           "Your Station is Approved, You can now take bookings."),
                     ),
                   ),
-                  ListTile(
+                  (isApproved==true)?ListTile(
                     leading: const Icon(Icons.scatter_plot),
                     title: const Text('Get Bookings'),
                     subtitle: ElevatedButton(
@@ -140,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: const Text('Bookings'),
                     ),
-                  ),
+                  ):const SizedBox(),
 
                 ],
               ),
